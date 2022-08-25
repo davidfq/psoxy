@@ -24,7 +24,7 @@ module "psoxy_lambda" {
 }
 
 resource "aws_lambda_function_url" "lambda_url" {
-  function_name      = var.function_name
+  function_name      = var.function_name # woudld 'module.psoxy_lambda.function_name' avoid explicit dependency??
   authorization_type = "AWS_IAM"
 
   cors {
@@ -35,13 +35,18 @@ resource "aws_lambda_function_url" "lambda_url" {
     expose_headers    = ["keep-alive", "date"]
     max_age           = 86400
   }
+
+  depends_on = [
+    module.psoxy_lambda
+  ]
 }
 
 locals {
   # lambda_url has trailing /, but our example_api_calls already have preceding /
-  proxy_endpoint_url = substr(aws_lambda_function_url.lambda_url.function_url, 0, length(aws_lambda_function_url.lambda_url.function_url) - 1)
+  proxy_endpoint_url  = substr(aws_lambda_function_url.lambda_url.function_url, 0, length(aws_lambda_function_url.lambda_url.function_url) - 1)
+  impersonation_param = var.example_api_calls_user_to_impersonate == null ? "" : " -i \"${var.example_api_calls_user_to_impersonate}\""
   test_commands = [for path in var.example_api_calls :
-    "${var.path_to_repo_root}tools/test-psoxy.sh -a -r \"${var.aws_assume_role_arn}\" -u \"${local.proxy_endpoint_url}${path}\""
+    "${var.path_to_repo_root}tools/test-psoxy.sh -a -r \"${var.aws_assume_role_arn}\" -u \"${local.proxy_endpoint_url}${path}\"${local.impersonation_param}"
   ]
 }
 
@@ -85,6 +90,13 @@ ${coalesce(join("\n", local.test_commands), "cd docs/example-api-calls/")}
 
 See `docs/example-api-calls/` for more example API calls specific to the data source to which your
 Proxy is configured to connect.
+
+Feel free to try the above calls, and reference to the source's API docs for other parameters /
+endpoints to experiment with. If you spot any additional fields you believe should be
+redacted/pseudonymized, feel free to modify the rules in your local repo and re-deploy OR configure
+a RULES variable in the source.
+
+Contact support@worklytics.co for assistance modifying the rules as needed.
 
 EOT
 }
