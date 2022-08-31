@@ -76,7 +76,7 @@ resource "random_password" "pseudonymization-key" {
   special = true
 }
 
-resource "google_secret_manager_secret_version" "initial_version" {
+resource "google_secret_manager_secret_version" "pseudonymization-key_initial_version" {
   secret      = google_secret_manager_secret.pseudonymization-key.id
   secret_data = sensitive(random_password.pseudonymization-key.result)
 
@@ -107,7 +107,7 @@ module "psoxy-package" {
 
   implementation     = "gcp"
   path_to_psoxy_java = "${var.psoxy_base_dir}java"
-
+  psoxy_version      = var.psoxy_version
 }
 
 data "archive_file" "source" {

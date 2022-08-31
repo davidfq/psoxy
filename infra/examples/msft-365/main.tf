@@ -20,8 +20,8 @@ provider "azuread" {
 data "azuread_client_config" "current" {}
 
 module "worklytics_connector_specs" {
-  source = "../../modules/worklytics-connector-specs"
-  # source = "git::https://github.com/worklytics/psoxy//infra/modules/worklytics-connector-specs?ref=v0.4.1"
+  # source = "../../modules/worklytics-connector-specs"
+  source = "git::https://github.com/worklytics/psoxy//infra/modules/worklytics-connector-specs?ref=v0.4.1"
 
   enabled_connectors = [
     "azure-ad",
@@ -38,7 +38,7 @@ module "worklytics_connector_specs" {
 }
 
 locals {
-  base_config_path       = "${var.psoxy_base_dir}configs/"
+  base_config_path = "${var.psoxy_base_dir}configs/"
 
 }
 

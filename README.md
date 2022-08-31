@@ -43,11 +43,14 @@ versions of all of the following:
   - [terraform](https://www.terraform.io/) optional; if you don't use this, you'll need to configure
     your GCP/AWS project via the web console/CLI tools. Writing your own terraform config that
     re-uses our modules will simplify things greatly.
+  - [jq](https://stedolan.github.io/jq/) optional, used for testing.
 
 And, depending on your scenario, you may also need:
   - [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) is
-    required to deploy your psoxy instances in AWS; and python 3.6+, pip, and awscurl to be able to
-    test your proxy instances locally.
+    required to deploy your psoxy instances in AWS; and for testing AWS deployments locally:
+    - [python 3.6+](https://www.python.org/)
+    - [pip](https://pypi.org/project/pip/) - usually included with Python
+    - [awscurl](https://github.com/okigan/awscurl) - installed via pip
   - [Google Cloud Command Line tool](https://cloud.google.com/sdk/docs/install) Required to host
     your psoxy instances in GCP *OR* if you plan to connect Google Workspace as a data source. It
     should be configured for the GCP project that will host your psoxy instance(s) and/or your
@@ -128,7 +131,7 @@ terraform apply
 
 ## Releases
 
-### v0.4.1 - beta
+### [v0.4.1](https://github.com/Worklytics/psoxy/releases/tag/v0.4.1)
 The `main` branch is current at 0.4.
 
 Features:
@@ -136,7 +139,7 @@ Features:
     pseudonyms client, which can be encrypted using key available to psoxy instances (and expected
     to rotate, such that reversible only until it is rotated).
   - **endpoint-based rules** - fully move to 'Rules 2.0', dropping support
-    for 'Rules 1.0' format; and allow 'Rules 2.0' to be recursive (endpoints having endpoints
+    for 'Rules 1.0' format
 
 Breaking changes:
   - drop support for 'Rules 1.0' format
