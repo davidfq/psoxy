@@ -144,6 +144,12 @@
             <version>${dependency.apache-httpcore.version}</version>
         </dependency>
 
+        <!-- Redis library to store oauth tokens -->
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson</artifactId>
+            <version>${dependency.redisson.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.mockito</groupId>
