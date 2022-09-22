@@ -12,12 +12,18 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.java.Log;
+import org.redisson.api.RBucket;
+import org.redisson.api.RLock;
+import org.redisson.api.RReadWriteLock;
+import org.redisson.api.RedissonClient;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -60,6 +66,9 @@ public class OAuthRefreshTokenSourceAuthStrategy implements SourceAuthStrategy {
     }
 
     @Inject OAuth2CredentialsWithRefresh.OAuth2RefreshHandler refreshHandler;
+    @Inject RedissonClient redissonClient;
+    @Inject
+    ConfigService config;
 
     @Override
     public Set<ConfigService.ConfigProperty> getRequiredConfigProperties() {
@@ -74,12 +83,26 @@ public class OAuthRefreshTokenSourceAuthStrategy implements SourceAuthStrategy {
 
     @Override
     public Credentials getCredentials(Optional<String> userToImpersonate) {
-        return OAuth2CredentialsWithRefresh.newBuilder()
-            //TODO: pull an AccessToken from some cached location or something? otherwise will
-            // be 'null' and refreshed for every request; and/or Keep credentials themselves in
-            // memory
-            .setRefreshHandler(refreshHandler)
-            .build();
+
+        // client id should be unique
+        String clientId = config.getConfigPropertyOrError(ConfigProperty.CLIENT_ID);
+        RReadWriteLock readWriteLock = redissonClient.getReadWriteLock("oauth-refresh-lock-" + clientId);
+
+        RLock readLock = readWriteLock.readLock();
+        try {
+            readLock.tryLock(30, 10, TimeUnit.SECONDS);
+            RBucket<AccessToken> bucket = redissonClient.getBucket("oauth-refresh-token-" + clientId);
+            AccessToken accessToken = bucket.get();
+            return OAuth2CredentialsWithRefresh.newBuilder()
+                .setAccessToken(accessToken)
+                .setRefreshHandler(refreshHandler)
+                .build();
+        } catch (InterruptedException e) {
+            log.log(Level.SEVERE, "Read lock was lost, check Redis cluster", e);
+            throw new RuntimeException(e);
+        } finally {
+            readLock.unlock();
+        }
     }
 
     public interface TokenRequestPayloadBuilder {
@@ -108,6 +131,8 @@ public class OAuthRefreshTokenSourceAuthStrategy implements SourceAuthStrategy {
         HttpRequestFactory httpRequestFactory;
         @Inject
         OAuthRefreshTokenSourceAuthStrategy.TokenRequestPayloadBuilder payloadBuilder;
+        @Inject
+        RedissonClient redissonClient;
 
         @VisibleForTesting
         protected final Duration TOKEN_REFRESH_THRESHOLD = Duration.ofMinutes(1L);
@@ -126,36 +151,57 @@ public class OAuthRefreshTokenSourceAuthStrategy implements SourceAuthStrategy {
             if (isCurrentTokenValid(this.currentToken, Instant.now())) {
                 return this.currentToken;
             }
-            String refreshEndpoint =
-                config.getConfigPropertyOrError(OAuthRefreshTokenSourceAuthStrategy.ConfigProperty.REFRESH_ENDPOINT);
+            // client id should be unique
+            String clientId = config.getConfigPropertyOrError(ConfigProperty.CLIENT_ID);
+            RReadWriteLock readWriteLock = redissonClient.getReadWriteLock("oauth-refresh-lock-" + clientId);
+            RLock writeLock = readWriteLock.writeLock();
 
-            HttpRequest tokenRequest = httpRequestFactory
-                .buildPostRequest(new GenericUrl(refreshEndpoint), payloadBuilder.buildPayload());
+            try {
+                writeLock.tryLock(30, 10, TimeUnit.SECONDS);
 
-            // modify any header if needed
-            payloadBuilder.addHeaders(tokenRequest.getHeaders());
+                RBucket<AccessToken> bucket = redissonClient.getBucket("oauth-refresh-token-" + clientId);
+                String refreshEndpoint =
+                    config.getConfigPropertyOrError(OAuthRefreshTokenSourceAuthStrategy.ConfigProperty.REFRESH_ENDPOINT);
 
-            HttpResponse response = tokenRequest.execute();
+                HttpRequest tokenRequest = httpRequestFactory
+                    .buildPostRequest(new GenericUrl(refreshEndpoint), payloadBuilder.buildPayload());
 
-            CanonicalOAuthAccessTokenResponseDto tokenResponse =
-                objectMapper.readerFor(CanonicalOAuthAccessTokenResponseDto.class)
-                    .readValue(response.getContent());
+                // modify any header if needed
+                payloadBuilder.addHeaders(tokenRequest.getHeaders());
 
-            //TODO: this is obviously not great; if we're going to support refresh token rotation,
-            // need to have some way to control the logic based on grant type
-            config.getConfigPropertyAsOptional(RefreshTokenPayloadBuilder.ConfigProperty.REFRESH_TOKEN)
-                .ifPresent(currentRefreshToken -> {
-                    if (!Objects.equals(currentRefreshToken, tokenResponse.getRefreshToken())) {
-                        //TODO: update refreshToken (some source APIs do this; TBC whether ones currently
-                        // in scope for psoxy use do)
-                        //q: write to secret? (most correct ...)
-                        //q: write to file system?
-                        log.severe("Source API rotated refreshToken, which is currently NOT supported by psoxy");
-                    }
-                });
+                HttpResponse response = tokenRequest.execute();
 
-            this.currentToken = asAccessToken(tokenResponse);
-            return this.currentToken;
+                CanonicalOAuthAccessTokenResponseDto tokenResponse =
+                    objectMapper.readerFor(CanonicalOAuthAccessTokenResponseDto.class)
+                        .readValue(response.getContent());
+
+                //TODO: this is obviously not great; if we're going to support refresh token rotation,
+                // need to have some way to control the logic based on grant type
+                config.getConfigPropertyAsOptional(RefreshTokenPayloadBuilder.ConfigProperty.REFRESH_TOKEN)
+                    .ifPresent(currentRefreshToken -> {
+                        if (!Objects.equals(currentRefreshToken, tokenResponse.getRefreshToken())) {
+                            //TODO: update refreshToken (some source APIs do this; TBC whether ones currently
+                            // in scope for psoxy use do)
+                            //q: write to secret? (most correct ...)
+                            //q: write to file system?
+                            log.severe("Source API rotated refreshToken, which is currently NOT supported by psoxy");
+                        }
+                    });
+
+                Integer expiresIn = tokenResponse.getExpiresIn();
+                this.currentToken = asAccessToken(tokenResponse);
+
+                bucket.set(this.currentToken, expiresIn, TimeUnit.SECONDS);
+
+                this.currentToken = asAccessToken(tokenResponse);
+                return this.currentToken;
+
+            } catch (InterruptedException e) {
+                log.log(Level.SEVERE, "Write lock was lost, check Redis cluster", e);
+                throw new RuntimeException(e);
+            } finally {
+                writeLock.unlock();
+            }
         }
 
 

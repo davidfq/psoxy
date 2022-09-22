@@ -21,7 +21,15 @@ import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import dagger.Module;
 import dagger.Provides;
+import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.resolver.ResolvedAddressTypes;
+import io.netty.resolver.dns.DnsAddressResolverGroup;
+import io.netty.resolver.dns.DnsNameResolverBuilder;
+import io.netty.resolver.dns.DnsServerAddressStreamProviders;
 import lombok.extern.java.Log;
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
 
 import javax.crypto.spec.SecretKeySpec;
 import javax.inject.Named;
@@ -151,6 +159,21 @@ public class PsoxyModule {
     @Provides @Singleton
     UrlSafeTokenPseudonymEncoder urlSafeTokenPseudonymEncoder() {
         return new UrlSafeTokenPseudonymEncoder();
+    }
+
+    @Provides @Singleton
+    RedissonClient redissonClient() {
+        Config config = new Config();
+        config.setAddressResolverGroupFactory((aClass, dnsServerAddressStreamProvider) -> new DnsAddressResolverGroup(new DnsNameResolverBuilder()
+            .channelType(NioDatagramChannel.class)
+            .nameServerProvider(DnsServerAddressStreamProviders.platformDefault())
+            .resolvedAddressTypes(ResolvedAddressTypes.IPV4_ONLY)));
+        config.useSingleServer()
+            // use "rediss://" for SSL connection
+            .setAddress("redis://redis-backend-001.redis-backend.51rbhy.use1.cache.amazonaws.com:6379");
+        // 2. Create Redisson instance
+        // Sync and Async API
+        return Redisson.create(config);
     }
 
 }
