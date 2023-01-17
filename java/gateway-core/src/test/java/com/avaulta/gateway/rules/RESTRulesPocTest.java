@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.kjetland.jackson.jsonSchema.JsonSchemaGenerator;
 import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,11 +32,11 @@ public class RESTRulesPocTest {
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper()
-            .registerModule(new JSR310Module())
+            .registerModule(new JavaTimeModule())
             .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
         yamlMapper = new YAMLMapper()
-            .registerModule(new JSR310Module())
+            .registerModule(new JavaTimeModule())
             .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
         jsonSchemaGenerator = new JsonSchemaGenerator(objectMapper);
