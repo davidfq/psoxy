@@ -5,6 +5,7 @@ import co.worklytics.psoxy.gateway.ConfigService;
 import com.avaulta.gateway.rules.Endpoint;
 import co.worklytics.psoxy.rules.PrebuiltSanitizerRules;
 import co.worklytics.psoxy.rules.Rules2;
+import com.avaulta.gateway.rules.api.JsonSchema;
 import com.avaulta.gateway.rules.transforms.Transform;
 import co.worklytics.test.MockModules;
 import co.worklytics.test.TestUtils;
@@ -394,47 +395,47 @@ class SanitizerImplTest {
 
         assertTrue(sanitized.contains("historyId"));
 
-        SchemaRuleUtils.JsonSchema jsonSchema = SchemaRuleUtils.JsonSchema.builder()
+        JsonSchema jsonSchema = JsonSchema.builder()
             .type("object")
-            .properties(Map.<String, SchemaRuleUtils.JsonSchema>of(
-                "id", SchemaRuleUtils.JsonSchema.builder()
+            .properties(Map.<String, JsonSchema>of(
+                "id", JsonSchema.builder()
                     .type("string")
                     .build(),
-                "threadId", SchemaRuleUtils.JsonSchema.builder()
+                "threadId", JsonSchema.builder()
                     .type("string")
                     .build(),
-                "labelIds", SchemaRuleUtils.JsonSchema.builder()
+                "labelIds", JsonSchema.builder()
                     .type("array")
-                    .items(SchemaRuleUtils.JsonSchema.builder()
+                    .items(JsonSchema.builder()
                         .type("string")
                         .build())
                     .build(),
-                "payload", SchemaRuleUtils.JsonSchema.builder()
+                "payload", JsonSchema.builder()
                     .type("object")
-                    .properties(Map.<String, SchemaRuleUtils.JsonSchema>of(
-                        "headers", SchemaRuleUtils.JsonSchema.builder()
+                    .properties(Map.<String, JsonSchema>of(
+                        "headers", JsonSchema.builder()
                             .type("array")
-                            .items(SchemaRuleUtils.JsonSchema.builder()
+                            .items(JsonSchema.builder()
                                 .type("object")
-                                .properties(Map.<String, SchemaRuleUtils.JsonSchema>of(
-                                    "name", SchemaRuleUtils.JsonSchema.builder()
+                                .properties(Map.<String, JsonSchema>of(
+                                    "name", JsonSchema.builder()
                                         .type("string")
                                         .build(),
-                                    "value", SchemaRuleUtils.JsonSchema.builder()
+                                    "value", JsonSchema.builder()
                                         .type("string")
                                         .build()
                                 ))
                                 .build())
                             .build(),
-                        "partId", SchemaRuleUtils.JsonSchema.builder()
+                        "partId", JsonSchema.builder()
                             .type("string")
                             .build()
                     ))
                     .build(),
-                "sizeEstimate", SchemaRuleUtils.JsonSchema.builder()
+                "sizeEstimate", JsonSchema.builder()
                     .type("integer")
                     .build(),
-                "internalDate", SchemaRuleUtils.JsonSchema.builder()
+                "internalDate", JsonSchema.builder()
                     .type("string")
                     .build()
                 ))

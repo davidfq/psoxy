@@ -1,6 +1,6 @@
 package com.avaulta.gateway.rules;
 
-import com.fasterxml.jackson.annotation.*;
+import com.avaulta.gateway.rules.api.JsonSchema;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kjetland.jackson.jsonSchema.JsonSchemaGenerator;
@@ -152,116 +152,6 @@ public class SchemaRuleUtils {
             }
         } else {
             throw new IllegalArgumentException("Only schema with 'type' or '$ref' are supported: " + schema);
-        }
-    }
-
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor // for builder
-    @Data
-    @JsonPropertyOrder({"$schema"})
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonIgnoreProperties({"title"})
-    public static class JsonSchema {
-
-        //q: should we drop this? only makes sense at root of schema
-        @JsonProperty("$schema")
-        String schema;
-
-        String type;
-
-        @JsonProperty("$ref")
-        String ref;
-
-        //only applicable if type==object
-        Boolean additionalProperties;
-
-
-        //only applicable if type==String
-        String format;
-
-        Map<String, JsonSchema> properties;
-
-        //only applicable if type==array
-        JsonSchema items;
-
-        // @JsonProperties("$defs") on property, lombok getter/setter don't seem to do the right thing
-        // get java.lang.IllegalArgumentException: Unrecognized field "definitions" (class com.avaulta.gateway.rules.SchemaRuleUtils$JsonSchema)
-        //        //  when calling objectMapper.convertValue(((JsonNode) schema), JsonSchema.class);??
-        // perhaps it's a problem with the library we use to build the JsonNode schema??
-        Map<String, JsonSchema> definitions;
-
-        // part of JSON schema standard, but how to support for filters?
-        //  what if something validates against multiple of these, but filtering by the valid ones
-        //  yields different result??
-        // use case would be polymorphism, such as a groupMembers array can can contain
-        // objects of type Group or User, to provide hierarchical groups
-        // --> take whichever schema produces the "largest" result (eg, longest as a string??)
-        //List<CompoundJsonSchema> anyOf;
-
-        // part of JSON schema standard, but how to support for filters?
-        //  what if something validates against multiple of these, but filtering by the valid ones
-        //  yields different result??
-        // ultimately, don't see a use case anyways
-        //List<CompoundJsonSchema> oneOf;
-
-        // part of JSON schema standard
-        // it's clear how we would implement this as a filter (chain them), but not why
-        // this would ever be a good use case
-        //List<CompoundJsonSchema> allOf;
-
-        //part of JSON schema standard, but not a proxy-filtering use case this
-        // -- omitting the property produces same result
-        // -- no reason you'd ever want to all objects that DON'T match a schema, right?
-        // -- only use case I think of is to explicitly note what properties we know are in
-        //   source schema, so intend for filter to remove (rather than filter removing them by
-        //   omission)
-        //CompoundJsonSchema not;
-
-
-        @JsonIgnore
-        public boolean isRef() {
-            return ref != null;
-        }
-
-        @JsonIgnore
-        public boolean isString() {
-            return Objects.equals(type, "string");
-        }
-
-        @JsonIgnore
-        public boolean isNumber() {
-            return Objects.equals(type, "number");
-        }
-
-        @JsonIgnore
-        public boolean isInteger() {
-            return Objects.equals(type, "integer");
-        }
-
-        @JsonIgnore
-        public boolean isObject() {
-            return Objects.equals(type, "object");
-        }
-
-        @JsonIgnore
-        public boolean isArray() {
-            return Objects.equals(type, "array");
-        }
-
-        @JsonIgnore
-        public boolean isBoolean() {
-            return Objects.equals(type, "boolean");
-        }
-
-        @JsonIgnore
-        public boolean isNull() {
-            return Objects.equals(type, "null");
-        }
-
-        @JsonIgnore
-        public boolean hasType() {
-            return this.type != null;
         }
     }
 

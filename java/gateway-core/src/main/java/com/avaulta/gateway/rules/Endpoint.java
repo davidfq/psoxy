@@ -1,5 +1,6 @@
 package com.avaulta.gateway.rules;
 
+import com.avaulta.gateway.rules.api.JsonSchema;
 import com.avaulta.gateway.rules.transforms.Transform;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -21,6 +22,7 @@ public class Endpoint {
 
     String pathRegex;
 
+    @Deprecated // will be removed in v0.5; use
     //if provided, only query params in this list will be allowed
     @JsonInclude(JsonInclude.Include.NON_NULL)
     List<String> allowedQueryParams;
@@ -33,6 +35,7 @@ public class Endpoint {
     }
 
 
+    //NOTE: in OpenAPI Spec, this is in the structure (eg endpoint --> method --> parameters,schema)
     //if provided, only http methods in this list will be allowed
     @JsonInclude(JsonInclude.Include.NON_NULL)
     Set<String> allowedMethods;
@@ -43,12 +46,14 @@ public class Endpoint {
     }
 
 
-    SchemaRuleUtils.JsonSchema responseSchema;
+
+    JsonSchema responseSchema;
 
     @JsonIgnore
-    public Optional<SchemaRuleUtils.JsonSchema> getResponseSchemaOptional() {
+    public Optional<JsonSchema> getResponseSchemaOptional() {
         return Optional.ofNullable(responseSchema);
     }
+
 
 
     @Setter
