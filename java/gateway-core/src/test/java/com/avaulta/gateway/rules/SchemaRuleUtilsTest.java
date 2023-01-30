@@ -1,5 +1,6 @@
 package com.avaulta.gateway.rules;
 
+import com.avaulta.gateway.rules.api.JsonSchema;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -52,7 +53,7 @@ class SchemaRuleUtilsTest {
     @SneakyThrows
     @Test
     void generateJsonSchema() {
-        SchemaRuleUtils.JsonSchema jsonSchema = schemaRuleUtils.generateJsonSchema(SimplePojo.class);
+        JsonSchema jsonSchema = schemaRuleUtils.generateJsonSchema(SimplePojo.class);
 
         String jsonSchemaAsString = objectMapper
             .writerWithDefaultPrettyPrinter()
@@ -167,7 +168,7 @@ class SchemaRuleUtilsTest {
     @Test
     void filterBySchema_refs() {
 
-        SchemaRuleUtils.JsonSchema schemaWithRefs =
+        JsonSchema schemaWithRefs =
             schemaRuleUtils.generateJsonSchema(ComplexPojo.class);
 
         SimplePojoPlus simplePlus = SimplePojoPlus.builder()
