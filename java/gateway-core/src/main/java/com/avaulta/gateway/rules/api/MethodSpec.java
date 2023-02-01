@@ -10,12 +10,19 @@ import java.util.Map;
 @Builder
 @Value
 @JsonInclude(JsonInclude.Include.NON_NULL)
-class MethodSpec {
-    // https://swagger.io/docs/specification/describing-parameters/#path-parameters
-    //if provided, only parameters in this list will be allowed
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    List<ParameterSpec> parameters;
+public class MethodSpec {
 
+
+
+
+//    @JsonInclude(JsonInclude.Include.NON_NULL)
+//    List<ParameterSpec> parameters;
+
+    //clearer than parameters with `in: query` / `in: path`, but departs from OpenAPI spec
+    // does OpenAPI spec have some other way to allow "any query parameters", "any headers", etc?
+    // (any path parameters is non-sensical)
+    List<ParameterSpec> pathParameters;
+    List<ParameterSpec> queryParameters;
 
     // gives OpenAPI spec compatible structure:
     //   - pros of some interoperatibility, ease of building

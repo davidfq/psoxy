@@ -1,8 +1,12 @@
 package com.avaulta.gateway.rules.jsonschema;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -11,11 +15,11 @@ import java.util.*;
 @NoArgsConstructor
 public class Validator {
 
-    public boolean isValidPerSchema(JsonNode node, JsonSchema schema, RefEnvironment refEnvironment) {
+    public boolean isValid(JsonNode node, JsonSchema schema, RefEnvironment refEnvironment) {
         if (schema.isRef()) {
             //q: do we need to try to resolve against schema too??
             // eg, can have `#/definitions/` not at root of schema?
-            return isValidPerSchema(node, refEnvironment.resolve(schema.getRef()), refEnvironment);
+            return isValid(node, refEnvironment.resolve(schema.getRef()), refEnvironment);
         } else if (schema.hasType()) {
             //must have explicit type
 
@@ -46,7 +50,7 @@ public class Validator {
                                 //property not explicitly defined in schema, so valid if additionalProperties==true
                                 valid = schema.getAdditionalPropertiesOrDefault();
                             } else {
-                                valid = isValidPerSchema(value, propertySchema, refEnvironment);
+                                valid = isValid(value, propertySchema, refEnvironment);
                             }
                         }
                     }
@@ -67,7 +71,7 @@ public class Validator {
                     if (schema.getItems() != null) {
                         for (Iterator<JsonNode> it = node.elements(); it.hasNext(); ) {
                             JsonNode element = it.next();
-                            valid = isValidPerSchema(element, schema.getItems(), refEnvironment);
+                            valid = isValid(element, schema.getItems(), refEnvironment);
                         }
                     }
 
@@ -84,4 +88,6 @@ public class Validator {
             throw new IllegalArgumentException("Only schema with 'type' or '$ref' are supported: " + schema);
         }
     }
+
+
 }
