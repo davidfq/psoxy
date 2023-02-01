@@ -1,14 +1,56 @@
-package com.avaulta.gateway.rules.api;
+package com.avaulta.gateway.rules.jsonschema;
 
+import com.avaulta.gateway.rules.transforms.Transform;
 import com.fasterxml.jackson.annotation.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.apache.commons.lang3.ObjectUtils;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * subset of JSON Schema 2020-12, with transforms added and various features removed.
+ *
+ * In particular, we (plan to) support:
+ *   - all 'string' features, including defined formats
+ *   - basic string/numeric/boolean/null validation
+ *   - 'object', including 'properties'
+ *   - refs, but not remote refs
+ *
+ * Features are removed if:
+ *   1. not clear how to interpret it as a "filter", or interpreting as a "filter" would produce
+ *      result that is not valid per the same schema.
+ *   2. not useful for the proxy use case
+ *
+ * Unsupported 'string' features:
+ *   - length
+ *   - pattern - TBD, but probably *will* support this (use case of validating
+ *   - format - TBD, but probably will support a couple of these
+ *
+ * Unsupported 'object' features:
+ *   - Pattern Properties: https://json-schema.org/understanding-json-schema/reference/object.html#pattern-properties
+ *   - Required Properties: https://json-schema.org/understanding-json-schema/reference/object.html#required-properties
+ *   - Property Names: https://json-schema.org/understanding-json-schema/reference/object.html#property-names
+ *   - Object Size: https://json-schema.org/understanding-json-schema/reference/object.html#size
+ *   - Unevaluated Properties: https://json-schema.org/understanding-json-schema/reference/object.html#unevaluated-properties
+ *
+ * Unsupported 'array' features:
+ *   - Tuple validation: https://json-schema.org/understanding-json-schema/reference/array.html#tuple-validation
+ *   - Contains
+ *   - Length
+ *   - Uniqueness
+ *
+ * Unsupported numeric features:
+ *  - multipleOf
+ *  - range constraints
+ *
+ * q: rather than explicit list of transforms, have them potentially be implied by 'format'?
+ * q: rather than transforms with jsonPaths, have them always operate on the root, so in effect
+ *    you would push them to the lowest level?
+ *
+ * q: for clarity, should we call this JsonSchemaFilter??
+ */
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor // for builder
@@ -16,7 +58,7 @@ import java.util.Objects;
 @JsonPropertyOrder({"$schema"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties({"title"})
-public class JsonSchema {
+public class JsonSchema implements RefEnvironment {
 
     //q: should we drop this? only makes sense at root of schema
     @JsonProperty("$schema")
@@ -29,6 +71,13 @@ public class JsonSchema {
 
     //only applicable if type==object
     Boolean additionalProperties;
+
+
+    //avoid repeating logic to default to 'false' in BOTH Validate and Filter
+    @JsonIgnore //don't want to clutter serialized schemas with this
+    public Boolean getAdditionalPropertiesOrDefault() {
+        return ObjectUtils.defaultIfNull(additionalProperties, false);
+    }
 
 
     //only applicable if type==String
@@ -91,6 +140,13 @@ public class JsonSchema {
     //CompoundJsonSchema not;
 
 
+    // first transform to apply, if any
+    Transform transform;
+
+    // transforms to imply, if any; (after 'transform')
+    List<Transform> transforms;
+
+
     @JsonIgnore
     public boolean isRef() {
         return ref != null;
@@ -134,5 +190,16 @@ public class JsonSchema {
     @JsonIgnore
     public boolean hasType() {
         return this.type != null;
+    }
+
+    @Override
+    public JsonSchema resolve(@NonNull String ref) {
+        if (ref.equals("#")) {
+            return this;
+        } else if (ref.startsWith("#/definitions/")) {
+            return definitions.get(ref.substring("#/definitions/".length()));
+        } else {
+            throw new IllegalArgumentException("don't know how to resolve ref: " + ref);
+        }
     }
 }
