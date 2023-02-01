@@ -2,10 +2,8 @@ package com.avaulta.gateway.rules.jsonschema;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Map;
 
@@ -48,7 +46,7 @@ class ValidatorTest {
             .build();
 
         assertEquals(expected,
-            validator.isValidPerSchema(objectMapper.readTree(json), schema, schema));
+            validator.isValid(objectMapper.readTree(json), schema, schema));
     }
 
     @SneakyThrows
@@ -81,7 +79,7 @@ class ValidatorTest {
             .build();
 
         assertEquals(expected,
-            validator.isValidPerSchema(objectMapper.readTree(json), schema, schema));
+            validator.isValid(objectMapper.readTree(json), schema, schema));
     }
 
     @SneakyThrows
@@ -106,7 +104,7 @@ class ValidatorTest {
             .build();
 
         assertEquals(expected,
-            validator.isValidPerSchema(objectMapper.readTree(json), schema, schema));
+            validator.isValid(objectMapper.readTree(json), schema, schema));
     }
 
     @SneakyThrows
@@ -122,6 +120,6 @@ class ValidatorTest {
             .build();
 
         assertEquals(expected,
-            validator.isValidPerSchema(objectMapper.readTree(json), schema, schema));
+            validator.isValid(objectMapper.readTree(json), schema, schema));
     }
 }

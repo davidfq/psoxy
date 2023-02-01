@@ -1,6 +1,6 @@
 package com.avaulta.gateway.rules;
 
-import com.avaulta.gateway.rules.api.JsonSchema;
+import com.avaulta.gateway.rules.jsonschema.JsonSchema;
 import com.avaulta.gateway.rules.transforms.Transform;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
