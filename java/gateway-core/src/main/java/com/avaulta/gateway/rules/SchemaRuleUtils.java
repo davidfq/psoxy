@@ -1,12 +1,11 @@
 package com.avaulta.gateway.rules;
 
-import com.avaulta.gateway.rules.api.JsonSchema;
+import com.avaulta.gateway.rules.jsonschema.Filter;
+import com.avaulta.gateway.rules.jsonschema.JsonSchema;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kjetland.jackson.jsonSchema.JsonSchemaGenerator;
 import lombok.*;
-
-import java.util.*;
 
 @NoArgsConstructor(access = AccessLevel.PACKAGE) //for tests
 @AllArgsConstructor
@@ -14,6 +13,8 @@ public class SchemaRuleUtils {
 
     ObjectMapper objectMapper;
     JsonSchemaGenerator jsonSchemaGenerator;
+
+    Filter jsonSchemaFilter;
 
     /**
      * Generates a JSON schema for the given class.
@@ -51,108 +52,15 @@ public class SchemaRuleUtils {
      */
     public Object filterObjectBySchema(Object object, JsonSchema schema) {
         JsonNode provisionalOutput = objectMapper.valueToTree(object);
-        return filterBySchema(provisionalOutput, schema, schema);
+        return jsonSchemaFilter.filterBySchema(provisionalOutput, schema, schema);
     }
 
     @SneakyThrows
     public String filterJsonBySchema(String jsonString, JsonSchema schema) {
         JsonNode provisionalOutput = objectMapper.readTree(jsonString);
-        return objectMapper.writeValueAsString(filterBySchema(provisionalOutput, schema, schema));
+        return objectMapper.writeValueAsString(jsonSchemaFilter.filterBySchema(provisionalOutput, schema, schema));
     }
 
 
-    Object filterBySchema(JsonNode provisionalOutput, JsonSchema schema, JsonSchema root) {
-        if (schema.isRef()) {
-            if (schema.getRef().equals("#")) {
-                // recursive self-reference; see
-                return filterBySchema(provisionalOutput, root, root);
-            } else if (schema.getRef().startsWith("#/definitions/")) {
-                String definitionName = schema.getRef().substring("#/definitions/".length());
-                JsonSchema definition = root.getDefinitions().get(definitionName);
-                return filterBySchema(provisionalOutput, definition, root);
-            } else {
-                //cases like URLs relative to schema URI are not supported
-                throw new RuntimeException("unsupported ref: " + schema.getRef());
-            }
-        } else if (schema.hasType()) {
-            //must have explicit type
-
-            // https://json-schema.org/understanding-json-schema/reference/type.html
-            if (schema.isString()) {
-                if (provisionalOutput.isTextual()) {
-                    //TODO: validate 'format'??
-                    return provisionalOutput.asText();
-                } else {
-                    return null;
-                }
-            } else if (schema.isNumber()) {
-                if (provisionalOutput.isNumber() || provisionalOutput.isNull()) {
-                    return provisionalOutput.numberValue();
-                } else {
-                    return null;
-                }
-            } else if (schema.isInteger()) {
-                if (provisionalOutput.canConvertToInt() || provisionalOutput.isNull()) {
-                    return provisionalOutput.intValue();
-                } else if (provisionalOutput.canConvertToLong()) {
-                    return provisionalOutput.longValue();
-                } else {
-                    return null;
-                }
-            } else if (schema.isBoolean()) {
-                if (provisionalOutput.isBoolean() || provisionalOutput.isNull()) {
-                    return provisionalOutput.booleanValue();
-                } else {
-                    return null;
-                }
-            } else if (schema.isObject()) {
-                if (provisionalOutput.isObject()) {
-                    Map<String, Object> filtered = new HashMap<>();
-                    provisionalOutput.fields().forEachRemaining(entry -> {
-                        String key = entry.getKey();
-                        JsonNode value = entry.getValue();
-                        JsonSchema propertySchema = schema.getProperties().get(key);
-                        if (propertySchema != null) {
-                            Object filteredValue = filterBySchema(value, propertySchema, root);
-                            filtered.put(key, filteredValue);
-                        }
-                    });
-
-                    //TODO: add support for `additionalProperties == true`? not expected use-case for
-                    // proxy ...
-
-                    // handler for additionalProperties??
-
-
-                    return filtered;
-                } else {
-                    return null;
-                }
-            } else if (schema.isArray()) {
-                if (provisionalOutput.isArray()) {
-                    List<Object> filtered = new LinkedList<>();
-                    provisionalOutput.elements().forEachRemaining(element -> {
-                        Object filteredElement = filterBySchema(element, schema.getItems(), root);
-                        if (filteredElement != null) {
-                            filtered.add(filteredElement);
-                        }
-                    });
-                    return filtered;
-                } else {
-                    return null;
-                }
-            } else if (schema.isNull()) {
-                //this is kinda nonsensical, right??
-                // omit the property --> don't get it
-                // include property with {type: null} --> get it, but it's always null?
-                // or do we want to FAIL if value from source is NON-NULL?
-                return null;
-            } else {
-                throw new IllegalArgumentException("Unknown schema type: " + schema);
-            }
-        } else {
-            throw new IllegalArgumentException("Only schema with 'type' or '$ref' are supported: " + schema);
-        }
-    }
 
 }
