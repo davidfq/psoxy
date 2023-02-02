@@ -19,7 +19,6 @@ import dagger.assisted.Assisted;
 import dagger.assisted.AssistedInject;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +42,6 @@ import java.util.stream.Stream;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 
 @Log
-@RequiredArgsConstructor //for tests to compile for now
 public class SanitizerImpl implements Sanitizer {
 
     @Getter
@@ -53,15 +51,12 @@ public class SanitizerImpl implements Sanitizer {
     //  - https://github.com/json-path/JsonPath/issues/384
     //  - https://github.com/json-path/JsonPath/issues/187 (earlier issue fixing stuff that wasn't thread-safe)
 
-    Map<Endpoint, Pattern> compiledAllowedEndpoints;
-
     private final Object $writeLock = new Object[0];
     List<Pair<Pattern, Endpoint>> compiledEndpointRules;
     Map<Transform, List<JsonPath>> compiledTransforms = new ConcurrentHashMap<>();
 
     @AssistedInject
-    public SanitizerImpl(HashUtils hashUtils, @Assisted ConfigurationOptions configurationOptions) {
-        this.hashUtils = hashUtils;
+    public SanitizerImpl(@Assisted ConfigurationOptions configurationOptions) {
         this.configurationOptions = configurationOptions;
     }
 
@@ -81,50 +76,8 @@ public class SanitizerImpl implements Sanitizer {
     @Inject
     SchemaRuleUtils schemaRuleUtils;
 
-    Map<Endpoint, Pattern> getCompiledAllowedEndpoints() {
-        if (compiledAllowedEndpoints == null) {
-            synchronized ($writeLock) {
-                if (configurationOptions.getRules() instanceof Rules2) {
-                    compiledAllowedEndpoints = ((Rules2) configurationOptions.getRules()).getEndpoints().stream()
-                        .collect(Collectors.toMap(Function.identity(),
-                            endpoint -> Pattern.compile(endpoint.getPathRegex(), CASE_INSENSITIVE)));
-                } else {
-                    throw new IllegalStateException("Rules must be of type Rules2");
-                }
-            }
-        }
-        return compiledAllowedEndpoints;
-    }
-
-
-
-    @Override
-    public boolean isAllowed(@NonNull String httpMethod, @NonNull URL url) {
-        String relativeUrl = URLUtils.relativeURL(url);
-
-        Rules2 rules = ((Rules2) configurationOptions.getRules());
-
-        if (rules.getAllowAllEndpoints()) {
-            return true;
-        } else {
-            return getCompiledAllowedEndpoints().entrySet().stream()
-                .filter(entry -> entry.getValue().matcher(relativeUrl).matches())
-                .filter(entry -> entry.getKey().getAllowedMethods()
-                    .map(methods -> methods.stream().map(String::toUpperCase).collect(Collectors.toList())
-                            .contains(httpMethod.toUpperCase()))
-                    .orElse(true))
-                .filter(entry -> entry.getKey().getAllowedQueryParamsOptional()
-                    .map(allowedParams -> allowedParams.containsAll(URLUtils.queryParamNames(url))).orElse(true))
-                .findAny().isPresent();
-        }
-    }
-
-
     @Override
     public String sanitize(String httpMethod, URL url, String jsonResponse) {        //extra check ...
-        if (!isAllowed(httpMethod, url)) {
-            throw new IllegalStateException(String.format("Sanitizer called to sanitize response that should not have been retrieved: %s", url.toString()));
-        }
         if (StringUtils.isEmpty(jsonResponse)) {
             // Nothing to do
             return jsonResponse;

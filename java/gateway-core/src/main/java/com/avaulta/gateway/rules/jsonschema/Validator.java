@@ -41,17 +41,11 @@ public class Validator {
                         String key = field.getKey();
                         JsonNode value = field.getValue();
 
-                        if (schema.getProperties() == null) {
+                        if (schema.getProperties() == null || !schema.getProperties().containsKey(key)) {
                             // no properties defined, so any property is valid if additionalProperties==true
-                            valid = schema.getAdditionalProperties();
+                            valid = schema.getAdditionalPropertiesOrDefault();
                         } else {
-                            JsonSchema propertySchema = schema.getProperties().get(key);
-                            if (propertySchema == null) {
-                                //property not explicitly defined in schema, so valid if additionalProperties==true
-                                valid = schema.getAdditionalPropertiesOrDefault();
-                            } else {
-                                valid = isValid(value, propertySchema, refEnvironment);
-                            }
+                            valid = isValid(value, schema.getProperties().get(key), refEnvironment);
                         }
                     }
 

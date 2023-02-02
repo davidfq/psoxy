@@ -52,32 +52,32 @@ class RESTRulesRequestValidatorTest {
 
     @BeforeEach
     void setUp() {
-        requestValidator = new RESTRulesRequestValidator(objectMapper, schemaValidator);
-
         restRules = RESTRules.builder()
             .paths(Map.of(
                 "/users/{userId}", userEndpoint,
                 "/users", usersEndpoint
             ))
             .build();
+
+        requestValidator = new RESTRulesRequestValidator(objectMapper, schemaValidator, restRules);
     }
 
     @Test
     void matchMethod() {
-        RESTRulesRequestValidator.HttpRequest request = mock(RESTRulesRequestValidator.HttpRequest.class);
+        RequestValidator.HttpRequest request = mock(RequestValidator.HttpRequest.class);
         when(request.getPath()).thenReturn("/users");
         when(request.getMethod()).thenReturn("GET");
 
-        Optional<MethodSpec> method = requestValidator.matchMethod(restRules, request);
+        Optional<MethodSpec> method = requestValidator.matchMethod(request);
 
         assertTrue(method.isPresent());
         assertEquals(usersEndpoint.getGet(), method.get());
 
-        RESTRulesRequestValidator.HttpRequest requestUser = mock(RESTRulesRequestValidator.HttpRequest.class);
+        RequestValidator.HttpRequest requestUser = mock(RequestValidator.HttpRequest.class);
         when(requestUser.getPath()).thenReturn("/users/123");
         when(requestUser.getMethod()).thenReturn("GET");
 
-        Optional<MethodSpec> userMethod = requestValidator.matchMethod(restRules, requestUser);
+        Optional<MethodSpec> userMethod = requestValidator.matchMethod(requestUser);
         assertTrue(userMethod.isPresent());
         assertEquals(userEndpoint.getGet(), userMethod.get());
     }

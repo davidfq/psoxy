@@ -8,6 +8,7 @@ import co.worklytics.psoxy.storage.FileHandlerFactory;
 import co.worklytics.psoxy.storage.impl.FileHandlerFactoryImpl;
 import com.avaulta.gateway.pseudonyms.impl.UrlSafeTokenPseudonymEncoder;
 import com.avaulta.gateway.rules.SchemaRuleUtils;
+import com.avaulta.gateway.rules.jsonschema.Filter;
 import com.avaulta.gateway.tokens.DeterministicTokenizationStrategy;
 import com.avaulta.gateway.tokens.ReversibleTokenizationStrategy;
 import com.avaulta.gateway.tokens.impl.AESReversibleTokenizationStrategy;
@@ -166,7 +167,7 @@ public class PsoxyModule {
             .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         JsonSchemaGenerator jsonSchemaGenerator = new JsonSchemaGenerator(objectMapper);
 
-        return new SchemaRuleUtils(objectMapper, jsonSchemaGenerator);
+        return new SchemaRuleUtils(objectMapper, jsonSchemaGenerator, new Filter());
     }
 
 

@@ -5,7 +5,7 @@ import co.worklytics.psoxy.gateway.ConfigService;
 import com.avaulta.gateway.rules.Endpoint;
 import co.worklytics.psoxy.rules.PrebuiltSanitizerRules;
 import co.worklytics.psoxy.rules.Rules2;
-import com.avaulta.gateway.rules.api.JsonSchema;
+import com.avaulta.gateway.rules.jsonschema.JsonSchema;
 import com.avaulta.gateway.rules.transforms.Transform;
 import co.worklytics.test.MockModules;
 import co.worklytics.test.TestUtils;
@@ -41,7 +41,6 @@ class SanitizerImplTest {
 
     SanitizerImpl sanitizer;
 
-
     @Inject
     protected SanitizerFactory sanitizerFactory;
 
@@ -50,10 +49,6 @@ class SanitizerImplTest {
 
     @Inject
     protected UrlSafeTokenPseudonymEncoder pseudonymEncoder;
-
-    @Inject
-    protected SchemaRuleUtils schemaRuleUtils;
-
 
     @Inject
     ConfigService config;
@@ -183,28 +178,7 @@ class SanitizerImplTest {
             sanitizer.pseudonymize(CANONICAL).getHash());
     }
 
-    @SneakyThrows
-    @ValueSource(strings = {
-        "https://gmail.googleapis.com/gmail/v1/users/me/messages/17c3b1911726ef3f?format=metadata",
-        "https://gmail.googleapis.com/gmail/v1/users/me/messages",
-    })
-    @ParameterizedTest
-    void allowedEndpointRegex_allowed(String url) {
-        assertTrue(sanitizer.isAllowed("GET", new URL(url)));
-    }
 
-    @SneakyThrows
-    @ValueSource(strings = {
-        "https://gmail.googleapis.com/gmail/v1/users/me/threads",
-        "https://gmail.googleapis.com/gmail/v1/users/me/profile",
-        "https://gmail.googleapis.com/gmail/v1/users/me/settings/forwardingAddresses",
-        "https://gmail.googleapis.com/gmail/v1/users/me/somethingPrivate/17c3b1911726ef3f\\?attemptToTrickRegex=messages",
-        "https://gmail.googleapis.com/gmail/v1/users/me/should-not-pass?anotherAttempt=https://gmail.googleapis.com/gmail/v1/users/me/messages"
-    })
-    @ParameterizedTest
-    void allowedEndpointRegex_blocked(String url) {
-        assertFalse(sanitizer.isAllowed("GET", new URL(url)));
-    }
 
     @SneakyThrows
     @ValueSource(strings = {
@@ -355,33 +329,6 @@ class SanitizerImplTest {
             pseudonymEncoder.decodeAndReverseAllContainedKeyedPseudonyms(r, reversibleTokenizationStrategy));
     }
 
-
-    @SneakyThrows
-    @ValueSource(strings = { "GET", "POST", "PUT", "PATCH" })
-    @ParameterizedTest
-    void allHttpMethodsAllowed(String httpMethod) {
-        final URL EXAMPLE_URL = new URL("https://gmail.googleapis.com/gmail/v1/users/me/messages");
-        assertTrue(sanitizer.isAllowed(httpMethod, EXAMPLE_URL));
-    }
-
-    @SneakyThrows
-    @ValueSource(strings = {"POST", "PUT", "PATCH", "DELETE"})
-    @ParameterizedTest
-    void httpMethods_onlyGetAllowed(String notGet) {
-        final URL EXAMPLE_URL = new URL("https://gmail.googleapis.com/gmail/v1/users/me/messages");
-        SanitizerImpl strictSanitizer = sanitizerFactory.create(Sanitizer.ConfigurationOptions.builder()
-            .rules(Rules2.builder()
-                .endpoint(Endpoint.builder()
-                    .allowedMethods(Collections.singleton("GET"))
-                    .pathRegex("^/gmail/v1/users/[^/]*/messages[/]?.*?$")
-                    .build())
-                .build())
-            .build()
-        );
-
-        assertTrue(strictSanitizer.isAllowed("GET", EXAMPLE_URL));
-        assertFalse(strictSanitizer.isAllowed(notGet, EXAMPLE_URL));
-    }
 
     @SneakyThrows
     @Test

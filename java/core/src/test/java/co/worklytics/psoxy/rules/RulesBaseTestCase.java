@@ -1,6 +1,7 @@
 package co.worklytics.psoxy.rules;
 
 import co.worklytics.psoxy.*;
+import co.worklytics.psoxy.gateway.impl.CommonRequestHandler;
 import co.worklytics.psoxy.impl.SanitizerImpl;
 import co.worklytics.test.MockModules;
 import co.worklytics.test.TestUtils;
@@ -36,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.*;
 abstract public class RulesBaseTestCase {
 
     protected SanitizerImpl sanitizer;
+    protected Rules2RequestValidator requestValidator;
 
     @Inject
     protected ObjectMapper jsonMapper;
@@ -96,6 +98,8 @@ abstract public class RulesBaseTestCase {
 
         Container container = DaggerRulesBaseTestCase_Container.create();
         container.inject(this);
+
+        requestValidator = new Rules2RequestValidator((Rules2) getRulesUnderTest());
 
         sanitizer = sanitizerFactory.create(Sanitizer.ConfigurationOptions.builder()
             .rules(getRulesUnderTest())
@@ -292,36 +296,39 @@ abstract public class RulesBaseTestCase {
 
     @SneakyThrows
     protected void assertUrlWithQueryParamsAllowed(String url) {
-        assertTrue(sanitizer.isAllowed("GET", new URL(url + "?param=value")), "single param blocked");
-        assertTrue(sanitizer.isAllowed("GET", new URL(url + "?param=value&param2=value2")), "multiple params blocked");
+        String readyForParam = url.contains("?") ? url + "&" : url + "?";
+
+        assertTrue(requestValidator.isAllowed(CommonRequestHandler.prototypeRequest("GET", new URL(readyForParam + "param=value"))), "single param blocked");
+        assertTrue(requestValidator.isAllowed(CommonRequestHandler.prototypeRequest("GET", new URL(readyForParam + "param=value&param2=value2"))), "multiple params blocked");
     }
 
     @SneakyThrows
     protected void assertUrlAllowed(String url) {
-        assertTrue(sanitizer.isAllowed("GET", new URL(url)), "api endpoint url blocked");
+        assertTrue(requestValidator.isAllowed(CommonRequestHandler.prototypeRequest("GET", new URL(url))), "api endpoint url blocked");
     }
 
     @SneakyThrows
     protected void assertUrlWithQueryParamsBlocked(String url) {
-        assertFalse(sanitizer.isAllowed("GET", new URL(url + "?param=value")), "query param allowed");
-        assertFalse(sanitizer.isAllowed("GET", new URL(url + "?param=value&param2=value2")), "multiple query params allowed");
+        String readyForParam = url.contains("?") ? url + "&" : url + "?";
+        assertFalse(requestValidator.isAllowed(CommonRequestHandler.prototypeRequest("GET", new URL(readyForParam + "param=value"))), "query param allowed");
+        assertFalse(requestValidator.isAllowed(CommonRequestHandler.prototypeRequest("GET", new URL(readyForParam + "param=value&param2=value2"))), "multiple query params allowed");
     }
 
     @SneakyThrows
     protected void assertUrlWithSubResourcesAllowed(String url) {
-        assertTrue(sanitizer.isAllowed("GET", new URL(url + "/anypath")), "path blocked");
-        assertTrue(sanitizer.isAllowed("GET", new URL(url + "/anypath/anysubpath")), "path with subpath blocked");
+        assertTrue(requestValidator.isAllowed(CommonRequestHandler.prototypeRequest("GET", new URL(url + "/anypath"))), "path blocked");
+        assertTrue(requestValidator.isAllowed(CommonRequestHandler.prototypeRequest("GET", new URL(url + "/anypath/anysubpath"))), "path with subpath blocked");
     }
 
     @SneakyThrows
     protected void assertUrlWithSubResourcesBlocked(String url) {
-        assertFalse(sanitizer.isAllowed("GET", new URL(url + "/anypath")), "subpath allowed");
-        assertFalse(sanitizer.isAllowed("GET", new URL(url + "/anypath/anysubpath")), "2 subpaths allowed");
+        assertFalse(requestValidator.isAllowed(CommonRequestHandler.prototypeRequest("GET", new URL(url + "/anypath"))), "subpath allowed");
+        assertFalse(requestValidator.isAllowed(CommonRequestHandler.prototypeRequest("GET", new URL(url + "/anypath/anysubpath"))), "2 subpaths allowed");
     }
 
     @SneakyThrows
     protected void assertUrlBlocked(String url) {
-        assertFalse(sanitizer.isAllowed("GET", new URL(url)), "rules allowed url that should be blocked: " + url);
+        assertFalse(requestValidator.isAllowed(CommonRequestHandler.prototypeRequest("GET", new URL(url))), "rules allowed url that should be blocked: " + url);
     }
 
     /**

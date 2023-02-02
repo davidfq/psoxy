@@ -3,6 +3,7 @@ package co.worklytics.test;
 import co.worklytics.psoxy.gateway.ConfigService;
 import co.worklytics.psoxy.gateway.SourceAuthStrategy;
 import co.worklytics.psoxy.rules.RuleSet;
+import co.worklytics.psoxy.rules.Rules2;
 import co.worklytics.psoxy.utils.RandomNumberGenerator;
 import dagger.Module;
 import dagger.Provides;
@@ -44,6 +45,14 @@ public class MockModules {
         @Provides @Singleton
         static RuleSet rules() {
             return mock(RuleSet.class);
+        }
+    }
+
+    @Module
+    public interface ForRules2 {
+        @Provides @Singleton
+        static RuleSet rules() {
+            return mock(Rules2.class);
         }
     }
 

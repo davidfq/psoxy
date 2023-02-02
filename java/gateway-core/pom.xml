@@ -102,6 +102,14 @@
             <version>1.0.39</version>
         </dependency>
 
+
+        <!-- do we really want to force DI framework on users ?? -->
+        <dependency>
+            <groupId>com.google.dagger</groupId>
+            <artifactId>dagger</artifactId>
+            <version>${dependency.dagger.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
@@ -115,6 +123,12 @@
             <artifactId>junit-jupiter</artifactId>
             <version>${dependency.junit-jupiter.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.dagger</groupId>
+            <artifactId>dagger</artifactId>
+            <version>2.40.5</version>
+            <scope>compile</scope>
         </dependency>
 
     </dependencies>
