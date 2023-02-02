@@ -1,6 +1,6 @@
 package com.avaulta.gateway.rules;
 
-import com.avaulta.gateway.rules.jsonschema.Filter;
+import com.avaulta.gateway.rules.jsonschema.FilterEngine;
 import com.avaulta.gateway.rules.jsonschema.JsonSchema;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,7 +14,7 @@ public class SchemaRuleUtils {
     ObjectMapper objectMapper;
     JsonSchemaGenerator jsonSchemaGenerator;
 
-    Filter jsonSchemaFilter;
+    FilterEngine jsonSchemaFilterEngine;
 
     /**
      * Generates a JSON schema for the given class.
@@ -52,13 +52,13 @@ public class SchemaRuleUtils {
      */
     public Object filterObjectBySchema(Object object, JsonSchema schema) {
         JsonNode provisionalOutput = objectMapper.valueToTree(object);
-        return jsonSchemaFilter.filterBySchema(provisionalOutput, schema, schema);
+        return jsonSchemaFilterEngine.filterBySchema(provisionalOutput, schema, schema);
     }
 
     @SneakyThrows
     public String filterJsonBySchema(String jsonString, JsonSchema schema) {
         JsonNode provisionalOutput = objectMapper.readTree(jsonString);
-        return objectMapper.writeValueAsString(jsonSchemaFilter.filterBySchema(provisionalOutput, schema, schema));
+        return objectMapper.writeValueAsString(jsonSchemaFilterEngine.filterBySchema(provisionalOutput, schema, schema));
     }
 
 

@@ -27,7 +27,7 @@ import java.util.Map;
  *   - https://github.com/alank64/json-schema-filter
  *
  */
-public class Filter {
+public class FilterEngine {
 
 
     public Object filterBySchema(JsonNode provisionalOutput, JsonSchema schema, RefEnvironment environment) {

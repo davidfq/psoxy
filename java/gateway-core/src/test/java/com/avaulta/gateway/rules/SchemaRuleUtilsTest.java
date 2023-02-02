@@ -1,6 +1,6 @@
 package com.avaulta.gateway.rules;
 
-import com.avaulta.gateway.rules.jsonschema.Filter;
+import com.avaulta.gateway.rules.jsonschema.FilterEngine;
 import com.avaulta.gateway.rules.jsonschema.JsonSchema;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -49,7 +49,7 @@ class SchemaRuleUtilsTest {
 
                 .withJsonSchemaDraft(JsonSchemaDraft.DRAFT_2019_09)
         );
-        schemaRuleUtils.jsonSchemaFilter = new Filter();
+        schemaRuleUtils.jsonSchemaFilterEngine = new FilterEngine();
     }
 
     @SneakyThrows
