@@ -2,18 +2,15 @@ package com.avaulta.gateway.rules.jsonschema;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import java.util.Objects;
-
 import static org.junit.jupiter.api.Assertions.*;
 
-class FilterTest {
+class FilterEngineTest {
 
-    Filter filter = new Filter();
+    FilterEngine filterEngine = new FilterEngine();
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -40,7 +37,7 @@ class FilterTest {
             .build();
 
         Object filteredResult =
-            filter.filterBySchema(objectMapper.readTree(originalJson), filterSchema, filterSchema);
+            filterEngine.filterBySchema(objectMapper.readTree(originalJson), filterSchema, filterSchema);
 
         if (pass) {
             assertEquals(originalJson, objectMapper.writeValueAsString(filteredResult));
@@ -58,7 +55,7 @@ class FilterTest {
             .build();
 
         Object filteredResult =
-            filter.filterBySchema(objectMapper.readTree("{\"a\":\"blah\"}"), filterSchema, filterSchema);
+            filterEngine.filterBySchema(objectMapper.readTree("{\"a\":\"blah\"}"), filterSchema, filterSchema);
 
         assertEquals("{}", objectMapper.writeValueAsString(filteredResult));
     }
@@ -73,7 +70,7 @@ class FilterTest {
             .build();
 
         Object filteredResult =
-            filter.filterBySchema(objectMapper.readTree("{\"a\":\"blah\"}"), filterSchema, filterSchema);
+            filterEngine.filterBySchema(objectMapper.readTree("{\"a\":\"blah\"}"), filterSchema, filterSchema);
 
         assertEquals("{\"a\":\"blah\"}", objectMapper.writeValueAsString(filteredResult));
     }
