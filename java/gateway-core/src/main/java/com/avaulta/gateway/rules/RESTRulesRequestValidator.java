@@ -13,6 +13,9 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
 
+import dagger.assisted.Assisted;
+import dagger.assisted.AssistedInject;
+
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -21,14 +24,28 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
-public class RESTRulesRequestValidator {
+public class RESTRulesRequestValidator implements RequestValidator {
 
     ObjectMapper objectMapper;
     Validator validator;
+    RESTRules rules;
+
+
+    @AssistedInject
+    public RESTRulesRequestValidator(@Assisted RESTRules rules) {
+        this.rules = rules;
+    }
+
+
+    @Override
+    public boolean isAllowed(HttpRequest request) {
+        return matchMethod(request).isPresent();
+    }
 
     //uses:
     // - validate request
-    // - transform request?? (eg, decrypt pseudonyms)
+    // - transform request?
+    //    - schema defined in the rules may give more power to do this ...
     // - transform response
 
     // use https://github.com/openapi4j/openapi4j/blob/master/openapi-operation-validator/src/main/java/org/openapi4j/operation/validator/validation/RequestValidator.java#L132
@@ -40,11 +57,10 @@ public class RESTRulesRequestValidator {
      *
      * q: better to use org.apache.http.HttpRequest here, rather than our own interface??
      *
-     * @param rules
      * @param request
      * @return
      */
-    public Optional<MethodSpec> matchMethod(RESTRules rules, HttpRequest request) {
+    public Optional<MethodSpec> matchMethod(RequestValidator.HttpRequest request) {
         return rules.getPaths().entrySet().stream()
             .map(entry -> matchHttpMethod(entry.getValue(), request)
                 .map(methodSpec -> Pair.of(entry.getKey(), methodSpec)).orElse(null))
@@ -58,7 +74,7 @@ public class RESTRulesRequestValidator {
     // can we use something like this??
     // https://github.com/openapi4j/openapi4j/blob/master/openapi-operation-validator/src/main/java/org/openapi4j/operation/validator/util/convert/ParameterConverter.java
 
-    boolean matchPath(RESTRules env, String pathTemplate, MethodSpec methodSpec, HttpRequest request) {
+    boolean matchPath(RESTRules env, String pathTemplate, MethodSpec methodSpec, RequestValidator.HttpRequest request) {
 
         Pair<Pattern, List<String>> pattern = toPattern(pathTemplate);
 
@@ -99,7 +115,7 @@ public class RESTRulesRequestValidator {
         return PATH_TEMPLATE_PARAM_PATTERN.matcher(pathTemplate).results().map(m -> m.group(1)).collect(Collectors.toList());
     }
 
-    boolean matchQuery(RESTRules env, MethodSpec endpoint, HttpRequest request) {
+    boolean matchQuery(RESTRules env, MethodSpec endpoint, RequestValidator.HttpRequest request) {
         return endpoint.getQueryParameters() == null
             || request.getQueryParams().entrySet()
             .stream()
@@ -112,26 +128,20 @@ public class RESTRulesRequestValidator {
                 .findAny().isPresent());
     }
 
-    Optional<MethodSpec> matchHttpMethod(EndpointSpec endpoint, HttpRequest request) {
-        if (request.getMethod().equals("GET")) {
+    Optional<MethodSpec> matchHttpMethod(EndpointSpec endpoint, RequestValidator.HttpRequest request) {
+        String ucMethod = request.getMethod().toUpperCase();
+
+        if (ucMethod.equals("GET")) {
             return Optional.ofNullable(endpoint.getGet());
-        } else if (request.getMethod().equals("POST")) {
+        } else if (ucMethod.equals("POST")) {
             return Optional.ofNullable(endpoint.getPost());
-        } else if (request.getMethod().equals("PUT")) {
+        } else if (ucMethod.equals("PUT")) {
             return Optional.ofNullable(endpoint.getPut());
-        } else if (request.getMethod().equals("DELETE")) {
+        } else if (ucMethod.equals("DELETE")) {
             return Optional.ofNullable(endpoint.getDelete());
         } else {
             return Optional.empty();
         }
-    }
-
-    interface HttpRequest {
-        String getMethod();
-        String getPath();
-        Map<String, String> getHeaders();
-        Map<String, String> getQueryParams();
-        String getBody();
     }
 
 

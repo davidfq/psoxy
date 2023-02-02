@@ -1,5 +1,6 @@
 package co.worklytics.psoxy.rules.slack;
 
+import co.worklytics.psoxy.gateway.impl.CommonRequestHandler;
 import co.worklytics.psoxy.rules.JavaRulesTestBaseCase;
 import co.worklytics.psoxy.rules.RuleSet;
 import lombok.Getter;
@@ -47,7 +48,8 @@ public class SlackDiscoveryTests extends JavaRulesTestBaseCase {
     })
     @ParameterizedTest
     void allowedEndpointRegex_allowed(String url) {
-        assertTrue(sanitizer.isAllowed("GET", new URL(url)), url + " should be allowed");
+        assertTrue(requestValidator.isAllowed(CommonRequestHandler.prototypeRequest("GET", new URL(url))),
+            url + " should be allowed");
     }
 
     @SneakyThrows
@@ -82,7 +84,8 @@ public class SlackDiscoveryTests extends JavaRulesTestBaseCase {
     })
     @ParameterizedTest
     void allowedEndpointRegex_blocked(String url) {
-        assertFalse(sanitizer.isAllowed("GET", new URL(url)), url + " should be blocked");
+        assertFalse(requestValidator.isAllowed(CommonRequestHandler.prototypeRequest("GET", new URL(url))),
+            url + " should be blocked");
     }
 
     @SneakyThrows

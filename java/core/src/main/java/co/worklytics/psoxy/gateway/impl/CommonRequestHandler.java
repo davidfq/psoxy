@@ -3,14 +3,20 @@ package co.worklytics.psoxy.gateway.impl;
 import co.worklytics.psoxy.*;
 import co.worklytics.psoxy.gateway.*;
 import co.worklytics.psoxy.rules.RuleSet;
+import co.worklytics.psoxy.rules.Rules2;
+import co.worklytics.psoxy.rules.Rules2RequestValidatorFactory;
 import co.worklytics.psoxy.rules.RulesUtils;
 import co.worklytics.psoxy.utils.ComposedHttpRequestInitializer;
 import co.worklytics.psoxy.utils.GzipedContentHttpRequestInitializer;
 import co.worklytics.psoxy.utils.URLUtils;
+
 import com.avaulta.gateway.pseudonyms.PseudonymImplementation;
 import com.avaulta.gateway.pseudonyms.impl.UrlSafeTokenPseudonymEncoder;
+import com.avaulta.gateway.rules.RequestValidator;
 import com.avaulta.gateway.tokens.ReversibleTokenizationStrategy;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.google.api.client.http.*;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.auth.Credentials;
@@ -19,9 +25,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
@@ -31,10 +39,7 @@ import org.apache.http.entity.ContentType;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
@@ -59,6 +64,9 @@ public class CommonRequestHandler {
     @Inject
     ReversibleTokenizationStrategy reversibleTokenizationStrategy;
     @Inject UrlSafeTokenPseudonymEncoder pseudonymEncoder;
+    @Inject Rules2RequestValidatorFactory requestValidatorFactory;
+
+    RequestValidator requestValidator;
 
     /**
      * Basic headers to pass: content, caching, retries. Can be expanded by connection later.
@@ -104,6 +112,8 @@ public class CommonRequestHandler {
                 if (this.sanitizer == null) {
                     this.sanitizer = sanitizerFactory.create(sanitizerFactory.buildOptions(config, rules));
                 }
+
+                this.requestValidator = requestValidatorFactory.create((Rules2) rules);
             }
         }
         return this.sanitizer;
@@ -132,7 +142,7 @@ public class CommonRequestHandler {
         String callLog = String.format("%s %s", request.getHttpMethod(), relativeURL);
         if (skipSanitization) {
             log.info(String.format("%s. Skipping sanitization.", callLog));
-        } else if (sanitizer.isAllowed(request.getHttpMethod(), targetUrl)) {
+        } else if (requestValidator.isAllowed(prototypeRequest(request.getHttpMethod(), targetUrl))) {
             log.info(String.format("%s. Rules allowed call.", callLog));
         } else {
             builder.statusCode(HttpStatus.SC_FORBIDDEN);
@@ -371,6 +381,36 @@ public class CommonRequestHandler {
         if (config.isDevelopment()) {
             log.info(messageSupplier.get());
         }
+    }
+
+    public static RequestValidator.HttpRequest prototypeRequest(String method, URL targetUrl) {
+        return new RequestValidator.HttpRequest() {
+            @Override
+            public String getMethod() {
+                return method;
+            }
+
+            @Override
+            public String getPath() {
+                return targetUrl.getPath();
+            }
+
+
+            @Override
+            public Map<String, String> getHeaders() {
+                return new HashMap<>();
+            }
+
+            @Override
+            public Map<String, String> getQueryParams() {
+                return URLUtils.parseQueryParams(targetUrl);
+            }
+
+            @Override
+            public String getBody() {
+                return null;
+            }
+        };
     }
 
 }

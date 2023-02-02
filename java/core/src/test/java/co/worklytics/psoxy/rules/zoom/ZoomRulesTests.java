@@ -1,5 +1,6 @@
 package co.worklytics.psoxy.rules.zoom;
 
+import co.worklytics.psoxy.gateway.impl.CommonRequestHandler;
 import co.worklytics.psoxy.rules.Rules2;
 import co.worklytics.psoxy.rules.JavaRulesTestBaseCase;
 import lombok.Getter;
@@ -53,7 +54,8 @@ public class ZoomRulesTests extends JavaRulesTestBaseCase {
     })
     @ParameterizedTest
     void allowedEndpointRegex_allowed(String url) {
-        assertTrue(sanitizer.isAllowed("GET", new URL(url)), url + " should be allowed");
+        assertTrue(requestValidator.isAllowed(CommonRequestHandler.prototypeRequest("GET", new URL(url))),
+            url + " should be allowed");
     }
 
     @SneakyThrows
@@ -76,7 +78,8 @@ public class ZoomRulesTests extends JavaRulesTestBaseCase {
     })
     @ParameterizedTest
     void allowedEndpointRegex_blocked(String url) {
-        assertFalse(sanitizer.isAllowed("GET", new URL(url)), url + " should be blocked");
+        assertFalse(requestValidator.isAllowed(CommonRequestHandler.prototypeRequest("GET", new URL(url))),
+            url + " should be blocked");
     }
 
     @SneakyThrows

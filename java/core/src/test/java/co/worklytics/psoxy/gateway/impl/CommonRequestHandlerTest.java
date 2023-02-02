@@ -44,7 +44,7 @@ class CommonRequestHandlerTest {
     @Component(modules = {
         PsoxyModule.class,
         MockModules.ForConfigService.class,
-        MockModules.ForRules.class,
+        MockModules.ForRules2.class,
         MockModules.ForSourceAuthStrategySet.class,
     })
     public interface Container {

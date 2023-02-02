@@ -1,5 +1,6 @@
 package co.worklytics.psoxy.rules.google;
 
+import co.worklytics.psoxy.gateway.impl.CommonRequestHandler;
 import co.worklytics.psoxy.rules.JavaRulesTestBaseCase;
 import co.worklytics.psoxy.rules.RuleSet;
 import lombok.Getter;
@@ -14,8 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DirectoryTests extends JavaRulesTestBaseCase {
 
@@ -187,8 +187,8 @@ public class DirectoryTests extends JavaRulesTestBaseCase {
         String endpoint = "https://admin.googleapis.com/admin/directory/v1/users/123124/photos/thumbnail";
 
         //block by default
-        assertThrows(IllegalStateException.class, () -> this.sanitize(endpoint, jsonString));
-
+        assertFalse(
+            this.requestValidator.isAllowed(CommonRequestHandler.prototypeRequest("GET", new URL(endpoint))));
         //NOTE: used to have test that thumbnail data redacted EVEN if request allowed through, but
         // with Rules2 format this doesn't make sense; rules are based on the matched endpoint, so
         // if no rules ALLOW thumbnails, by definition no rules will REDACT its content either
