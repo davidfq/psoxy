@@ -1,8 +1,6 @@
 package com.avaulta.gateway.rules;
 
 import com.avaulta.gateway.pseudonyms.PseudonymEncoder;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.*;
@@ -22,6 +20,8 @@ import java.util.*;
 public class ColumnarRules implements RuleSet {
 
     private static final long serialVersionUID = 1L;
+
+
 
     // in theory, `\t` should also work ...
     @Builder.Default

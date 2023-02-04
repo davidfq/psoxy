@@ -2,6 +2,7 @@ package co.worklytics.psoxy.rules;
 
 import com.avaulta.gateway.pseudonyms.PseudonymEncoder;
 import com.avaulta.gateway.rules.Endpoint;
+import com.avaulta.gateway.rules.RuleSet;
 import com.avaulta.gateway.rules.transforms.Transform;
 import com.google.common.base.Preconditions;
 import com.jayway.jsonpath.JsonPath;

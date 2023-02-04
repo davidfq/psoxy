@@ -1,8 +1,8 @@
 package co.worklytics.psoxy.rules.slack;
 
 import com.avaulta.gateway.rules.Endpoint;
-import co.worklytics.psoxy.rules.RuleSet;
 import co.worklytics.psoxy.rules.Rules2;
+import com.avaulta.gateway.rules.RuleSet;
 import com.avaulta.gateway.rules.transforms.Transform;
 import com.google.common.collect.ImmutableMap;
 

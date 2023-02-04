@@ -2,7 +2,7 @@ package co.worklytics.psoxy.rules;
 
 import co.worklytics.psoxy.gateway.ConfigService;
 import co.worklytics.psoxy.gateway.ProxyConfigProperty;
-import com.avaulta.gateway.rules.ColumnarRules;
+import com.avaulta.gateway.rules.RuleSet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import lombok.NoArgsConstructor;

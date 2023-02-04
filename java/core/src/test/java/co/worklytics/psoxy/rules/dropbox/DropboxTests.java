@@ -1,7 +1,7 @@
 package co.worklytics.psoxy.rules.dropbox;
 
 import co.worklytics.psoxy.rules.JavaRulesTestBaseCase;
-import co.worklytics.psoxy.rules.RuleSet;
+import com.avaulta.gateway.rules.RuleSet;
 import lombok.Getter;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

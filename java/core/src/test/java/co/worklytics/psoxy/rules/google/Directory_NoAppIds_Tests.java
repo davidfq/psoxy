@@ -1,6 +1,6 @@
 package co.worklytics.psoxy.rules.google;
 
-import co.worklytics.psoxy.rules.RuleSet;
+import com.avaulta.gateway.rules.RuleSet;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;

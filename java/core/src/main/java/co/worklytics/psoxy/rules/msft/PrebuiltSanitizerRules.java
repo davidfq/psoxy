@@ -3,7 +3,7 @@ package co.worklytics.psoxy.rules.msft;
 import co.worklytics.psoxy.ConfigRulesModule;
 import com.avaulta.gateway.rules.Endpoint;
 import co.worklytics.psoxy.rules.Rules2;
-import co.worklytics.psoxy.rules.RuleSet;
+import com.avaulta.gateway.rules.RuleSet;
 import com.avaulta.gateway.rules.transforms.Transform;
 import co.worklytics.psoxy.rules.zoom.ZoomTransforms;
 import com.avaulta.gateway.pseudonyms.PseudonymEncoder;

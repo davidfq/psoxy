@@ -2,7 +2,7 @@ package co.worklytics.psoxy;
 
 import co.worklytics.psoxy.gateway.ConfigService;
 import co.worklytics.psoxy.gateway.ProxyConfigProperty;
-import co.worklytics.psoxy.rules.RuleSet;
+import com.avaulta.gateway.rules.RuleSet;
 import co.worklytics.psoxy.rules.RulesUtils;
 import dagger.Component;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,5 +1,6 @@
 package co.worklytics.psoxy.rules;
 
+import com.avaulta.gateway.rules.RuleSet;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;

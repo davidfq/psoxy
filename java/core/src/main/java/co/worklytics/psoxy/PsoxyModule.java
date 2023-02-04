@@ -4,11 +4,18 @@ import co.worklytics.psoxy.gateway.ConfigService;
 import co.worklytics.psoxy.gateway.ProxyConfigProperty;
 import co.worklytics.psoxy.gateway.SourceAuthStrategy;
 import co.worklytics.psoxy.gateway.impl.oauth.OAuthRefreshTokenSourceAuthStrategy;
+import co.worklytics.psoxy.rules.Rules2;
+import co.worklytics.psoxy.rules.Rules2RequestValidatorFactory;
 import co.worklytics.psoxy.storage.FileHandlerFactory;
 import co.worklytics.psoxy.storage.impl.FileHandlerFactoryImpl;
 import com.avaulta.gateway.pseudonyms.impl.UrlSafeTokenPseudonymEncoder;
+import com.avaulta.gateway.rules.RESTRulesRequestValidatorFactory;
+import com.avaulta.gateway.rules.RequestValidator;
+import com.avaulta.gateway.rules.RuleSet;
 import com.avaulta.gateway.rules.SchemaRuleUtils;
+import com.avaulta.gateway.rules.api.RESTRules;
 import com.avaulta.gateway.rules.jsonschema.FilterEngine;
+import com.avaulta.gateway.rules.jsonschema.Validator;
 import com.avaulta.gateway.tokens.DeterministicTokenizationStrategy;
 import com.avaulta.gateway.tokens.ReversibleTokenizationStrategy;
 import com.avaulta.gateway.tokens.impl.AESReversibleTokenizationStrategy;
@@ -30,6 +37,7 @@ import dagger.Provides;
 import lombok.extern.java.Log;
 
 import javax.crypto.spec.SecretKeySpec;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.Objects;
@@ -170,5 +178,22 @@ public class PsoxyModule {
         return new SchemaRuleUtils(objectMapper, jsonSchemaGenerator, new FilterEngine());
     }
 
+    @Provides @Singleton
+    RequestValidator requestValidator(
+        RuleSet ruleSet,
+        Rules2RequestValidatorFactory requestValidatorFactory,
+        RESTRulesRequestValidatorFactory restRulesRequestValidatorFactory) {
+
+        if (ruleSet instanceof Rules2) {
+            return requestValidatorFactory.create((Rules2) ruleSet);
+        } else {
+            return restRulesRequestValidatorFactory.create((RESTRules) ruleSet);
+        }
+    }
+
+    @Provides @Singleton
+    Validator validator() {
+        return new Validator();
+    }
 
 }

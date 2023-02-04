@@ -5,7 +5,7 @@ import co.worklytics.psoxy.SanitizerFactory;
 import co.worklytics.psoxy.gateway.ConfigService;
 import co.worklytics.psoxy.gateway.StorageEventRequest;
 import co.worklytics.psoxy.gateway.StorageEventResponse;
-import co.worklytics.psoxy.rules.RuleSet;
+import com.avaulta.gateway.rules.RuleSet;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 

@@ -16,6 +16,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedInject;
 
+import javax.inject.Inject;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -26,7 +27,10 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class RESTRulesRequestValidator implements RequestValidator {
 
+    @Inject
     ObjectMapper objectMapper;
+
+    @Inject
     Validator validator;
     RESTRules rules;
 

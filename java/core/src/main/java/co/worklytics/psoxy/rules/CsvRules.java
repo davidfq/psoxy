@@ -1,8 +1,8 @@
 package co.worklytics.psoxy.rules;
 
 import com.avaulta.gateway.rules.ColumnarRules;
+import com.avaulta.gateway.rules.RuleSet;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 
@@ -11,8 +11,4 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class CsvRules extends ColumnarRules implements RuleSet {
 
-    @Override
-    public String getDefaultScopeIdForSource() {
-        return null;
-    }
 }

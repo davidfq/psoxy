@@ -1,5 +1,6 @@
 package com.avaulta.gateway.rules.api;
 
+import com.avaulta.gateway.rules.RuleSet;
 import com.avaulta.gateway.rules.jsonschema.JsonSchema;
 import com.avaulta.gateway.rules.jsonschema.RefEnvironment;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -14,13 +15,16 @@ import java.util.Map;
 @Builder
 @Value
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class RESTRules  {
+public class RESTRules implements RuleSet {
 
     Map<String, EndpointSpec> paths;
 
     @Builder.Default
     Components components = Components.builder().build();
 
+
+    @Deprecated
+    String defaultScopeIdForSource;
 
     @Builder
     @Value

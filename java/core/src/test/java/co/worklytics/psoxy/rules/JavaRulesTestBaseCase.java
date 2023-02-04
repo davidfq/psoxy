@@ -1,6 +1,7 @@
 package co.worklytics.psoxy.rules;
 
 import co.worklytics.psoxy.rules.google.PrebuiltSanitizerRules;
+import com.avaulta.gateway.rules.RuleSet;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 

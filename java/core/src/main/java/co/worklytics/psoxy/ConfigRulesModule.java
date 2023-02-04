@@ -3,8 +3,8 @@ package co.worklytics.psoxy;
 import co.worklytics.psoxy.gateway.ConfigService;
 import co.worklytics.psoxy.gateway.ProxyConfigProperty;
 import co.worklytics.psoxy.rules.PrebuiltSanitizerRules;
-import co.worklytics.psoxy.rules.RuleSet;
 import co.worklytics.psoxy.rules.RulesUtils;
+import com.avaulta.gateway.rules.RuleSet;
 import dagger.Module;
 import dagger.Provides;
 

@@ -2,7 +2,7 @@ package co.worklytics.test;
 
 import co.worklytics.psoxy.gateway.ConfigService;
 import co.worklytics.psoxy.gateway.SourceAuthStrategy;
-import co.worklytics.psoxy.rules.RuleSet;
+import com.avaulta.gateway.rules.RuleSet;
 import co.worklytics.psoxy.rules.Rules2;
 import co.worklytics.psoxy.utils.RandomNumberGenerator;
 import dagger.Module;

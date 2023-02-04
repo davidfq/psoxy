@@ -4,8 +4,8 @@ import co.worklytics.psoxy.gateway.ConfigService;
 import co.worklytics.psoxy.gateway.ProxyConfigProperty;
 import co.worklytics.psoxy.impl.SanitizerImpl;
 
-import co.worklytics.psoxy.rules.RuleSet;
 import com.avaulta.gateway.pseudonyms.PseudonymImplementation;
+import com.avaulta.gateway.rules.RuleSet;
 import dagger.assisted.AssistedFactory;
 
 @AssistedFactory
@@ -19,7 +19,7 @@ public interface SanitizerFactory {
             .pseudonymizationSalt(config.getConfigPropertyAsOptional(ProxyConfigProperty.PSOXY_SALT)
                 .orElseThrow(() -> new Error("Must configure value for SALT to generate pseudonyms")))
             .defaultScopeId(config.getConfigPropertyAsOptional(ProxyConfigProperty.IDENTIFIER_SCOPE_ID)
-                .orElse(rules.getDefaultScopeIdForSource()));
+                .orElse(config.getConfigPropertyAsOptional(ProxyConfigProperty.SOURCE).orElse(null)));
 
         config.getConfigPropertyAsOptional(ProxyConfigProperty.PSEUDONYM_IMPLEMENTATION)
             .map(PseudonymImplementation::parseConfigPropertyValue)

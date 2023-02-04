@@ -2,9 +2,6 @@ package co.worklytics.psoxy.gateway.impl;
 
 import co.worklytics.psoxy.*;
 import co.worklytics.psoxy.gateway.*;
-import co.worklytics.psoxy.rules.RuleSet;
-import co.worklytics.psoxy.rules.Rules2;
-import co.worklytics.psoxy.rules.Rules2RequestValidatorFactory;
 import co.worklytics.psoxy.rules.RulesUtils;
 import co.worklytics.psoxy.utils.ComposedHttpRequestInitializer;
 import co.worklytics.psoxy.utils.GzipedContentHttpRequestInitializer;
@@ -13,6 +10,7 @@ import co.worklytics.psoxy.utils.URLUtils;
 import com.avaulta.gateway.pseudonyms.PseudonymImplementation;
 import com.avaulta.gateway.pseudonyms.impl.UrlSafeTokenPseudonymEncoder;
 import com.avaulta.gateway.rules.RequestValidator;
+import com.avaulta.gateway.rules.RuleSet;
 import com.avaulta.gateway.tokens.ReversibleTokenizationStrategy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -58,16 +56,15 @@ public class CommonRequestHandler {
     @Inject SourceAuthStrategy sourceAuthStrategy;
     @Inject ObjectMapper objectMapper;
     @Inject SanitizerFactory sanitizerFactory;
-    @Inject
-    RuleSet rules;
     @Inject HealthCheckRequestHandler healthCheckRequestHandler;
-    @Inject
-    ReversibleTokenizationStrategy reversibleTokenizationStrategy;
+    @Inject ReversibleTokenizationStrategy reversibleTokenizationStrategy;
     @Inject UrlSafeTokenPseudonymEncoder pseudonymEncoder;
-    @Inject Rules2RequestValidatorFactory requestValidatorFactory;
+    @Inject RequestValidator requestValidator;
+    @Inject RuleSet rules;
 
-    RequestValidator requestValidator;
 
+
+    //TODO: move these to the rules??
     /**
      * Basic headers to pass: content, caching, retries. Can be expanded by connection later.
      * Matches literally on headers.
@@ -112,8 +109,6 @@ public class CommonRequestHandler {
                 if (this.sanitizer == null) {
                     this.sanitizer = sanitizerFactory.create(sanitizerFactory.buildOptions(config, rules));
                 }
-
-                this.requestValidator = requestValidatorFactory.create((Rules2) rules);
             }
         }
         return this.sanitizer;
