@@ -100,7 +100,7 @@ Terraform. You will need to redeploy the proxy again if that value was not popul
    - `PSOXY_GITHUB_PRIVATE_KEY` with content of the `gh_pk_pkcs8.pem` from previous step. You could
      open the certificate with VS Code or any other editor and copy all the content _as-is_ into
      this variable.
-9. Once the certificate has been uploaded, please remove {YOUR DOWNLOADED CERTIFICATE FILE} and
+9. Once the certificate has been uploaded, please remove -YOUR DOWNLOADED CERTIFICATE FILE- and
    `gh_pk_pkcs8.pem` from your computer or store it in a safe place.
 
 ## GitHub Enteprise Server: Steps to connect
