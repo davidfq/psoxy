@@ -15,7 +15,7 @@ build:
     # Install Docusaurus dependencies
     - cd docs-website/ && npm install
     # Build the site
-    - cd docs-website/ && npm run build
+    - cd docs-website/ && npm run build --dev
     # Copy generated files into Read the Docs directory
     - mkdir --parents _readthedocs/html/
     - cp --recursive docs-website/build/* _readthedocs/html/
