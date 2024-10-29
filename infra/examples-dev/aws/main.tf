@@ -94,6 +94,15 @@ module "psoxy" {
   bulk_input_expiration_days     = var.bulk_input_expiration_days
 }
 
+module "connection_via_tenant_api" {
+  source = "../../../../../terraform-aws-worklytics/examples/create_psoxy_connections"
+
+  worklytics_tenant_id         = var.caller_gcp_service_account_ids[0] # TODO:S186 review this...
+  user_principal_email         = var.user_principal_email              # pending...
+  psoxy_connections            = module.psoxy.tenant_api_settings
+  psoxy_connection_script_path = path.module
+}
+
 # if you generated these, you may want them to import back into your data warehouse
 output "lookup_tables" {
   value = module.psoxy.lookup_tables

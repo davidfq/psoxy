@@ -509,6 +509,7 @@ moved {
 module "worklytics_psoxy_connection" {
   for_each = module.worklytics_connector_specs.enabled_oauth_long_access_connectors
 
+  # TODO using deprecated module... should use worklytics-psoxy-connection-generic
   source = "../../modules/worklytics-psoxy-connection"
   # source = "git::https://github.com/worklytics/psoxy//infra/modules/worklytics-psoxy-connection?ref=v0.4.52"
 

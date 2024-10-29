@@ -142,6 +142,16 @@ module "connection_in_worklytics" {
   try(each.value.settings_to_provide, {}))
 }
 
+module "connection_via_tenant_api" {
+  source = "../../../../../terraform-gcp-worklytics/examples/create_psoxy_connections"
+
+  project_id                   = var.gcp_project_id
+  service_account_id           = "worklytics-tenant-api" # it's the default value
+  worklytics_tenant_id         = var.worklytics_tenant_id
+  psoxy_connections            = [for connection in module.connection_in_worklytics : connection.tenant_api_settings]
+  psoxy_connection_script_path = path.module
+}
+
 output "path_to_deployment_jar" {
   description = "Path to the package to deploy (JAR)."
   value       = module.psoxy.path_to_deployment_jar
@@ -164,6 +174,17 @@ output "todos_2" {
 output "todos_3" {
   description = "List of todo steps to complete 3rd, in markdown format."
   value       = var.todos_as_outputs ? join("\n", values(module.connection_in_worklytics)[*].todo) : null
+}
+
+
+output "tenant_api_scripts" {
+  description = "List of scripts to run to create connections via Worklytics Tenant API."
+  value       = module.connection_via_tenant_api.worklytics_tenant_api_scripts
+}
+
+output "tenant_api_sa" {
+  description = "Service Account to authenticate with Worklytics Tenant API (DataConnectionAdmin role)"
+  value       = module.connection_via_tenant_api.worklytics_tenant_api_sa
 }
 
 # although should be sensitive such that Terraform won't echo it to command line or expose it, leave

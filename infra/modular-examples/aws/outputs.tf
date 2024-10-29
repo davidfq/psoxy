@@ -46,3 +46,6 @@ output "caller_role_arn" {
   value       = module.psoxy_aws.api_caller_role_arn
 }
 
+output "tenant_api_settings" {
+  value = concat(values(module.worklytics_psoxy_connection)[*].tenant_api_settings)
+}
