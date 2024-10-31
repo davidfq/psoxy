@@ -47,5 +47,9 @@ output "caller_role_arn" {
 }
 
 output "tenant_api_settings" {
-  value = concat(values(module.worklytics_psoxy_connection)[*].tenant_api_settings)
+  value = concat(
+    values(module.worklytics_psoxy_connection)[*].tenant_api_settings,
+    values(module.worklytics_psoxy_connection_google_workspace)[*].tenant_api_settings,
+    values(module.psoxy_bulk_to_worklytics)[*].tenant_api_settings
+  )
 }
